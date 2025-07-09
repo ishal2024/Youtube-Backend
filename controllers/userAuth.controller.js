@@ -1,3 +1,4 @@
+const upload = require('../middlewares/multer.middleware')
 const userModel = require('../models/user.model')
 const bcrypt = require('../utils/bcrypt')
 const cloudUpload = require('../utils/cloudinary')
@@ -86,11 +87,6 @@ async function logOut(req, res) {
     }
 }
 
-// Fetch refresh token
-// Check the token is fethed or not
-// decode the refresh token
-// check the refreshToken is same as userDtabaseRefreshToken
-// Generate refersh and access token again send it to user cookie
 
 async function againRefreshToken(req, res) {
     try {
@@ -121,4 +117,50 @@ async function againRefreshToken(req, res) {
     }
 }
 
-module.exports = { registerUser, logInUser, logOut , againRefreshToken }
+
+async function updateUser(req,res){
+    try {
+        const requiredFiels = ['username' , 'email' , 'fullname']
+        const updateFields = Object.keys(req.body)
+        
+        const user = await userModel.findById(req.user._id)
+
+        requiredFiels.map((val) => {
+               if(updateFields.includes(val)){
+                user[val] = req.body[val]
+               }
+        })
+        await user.save()
+        const updatedUser = await userModel.findById(req.user._id)
+         res.status(200).json({message : "User is Updated" , userInfo : updatedUser})
+        
+    } catch (error) {
+         res.status(400).json({message : error.message})
+    }
+}
+
+
+async function updateAvatar(req,res){
+    try {
+        
+        const localpath = req.file?.path
+        if(!localpath) return res.status(400).json({message : "Please send the file"})
+        
+        const response = await cloudUpload(localpath)
+        console.log(response)
+        if(!response?.url) return res.status(400).json({message : "Image is not uploaded"})
+        
+        const updatedUser = await userModel.findByIdAndUpdate(
+            req.user._id,
+            {$set : {avatar : response?.url}},
+            {new : true}
+        )
+    
+        res.status(200).json({message : 'Avatar is updated' , userInfo : updatedUser})
+
+    } catch (error) {
+       res.status(400).json({message : error.message}) 
+    }
+}
+
+module.exports = { registerUser, logInUser, logOut , againRefreshToken , updateUser , updateAvatar}

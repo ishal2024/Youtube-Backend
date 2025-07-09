@@ -14,4 +14,8 @@ router.get('/logout' ,isLoggedIn , authController.logOut)
 
 router.get('/refreshtoken'  , authController.againRefreshToken)
 
+router.post('/updateuser' , isLoggedIn , authController.updateUser)
+
+router.post('/updateavatar' , isLoggedIn , upload.single('avatar') , authController.updateAvatar)
+
 module.exports = router
