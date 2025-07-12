@@ -7,7 +7,7 @@ const isLoggedIn = async (req, res, next) => {
         if (!req.cookies?.accessToken) return res.status(401).json({ message: "Please log in" });
 
         const decoded = jwt.tokenVerify(req.cookies.accessToken, process.env.ACCESS_TOKEN)
-        console.log(decoded)
+       
         if (!decoded?.userId) return res.status(401).json({ message: "Invalid Token" });
 
         const user = await userModel.findById(decoded.userId).select('-password')
